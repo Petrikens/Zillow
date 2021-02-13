@@ -34,11 +34,12 @@ export default App = () => {
             const json = parseString(xmlText, (err, result) => {
               resultJSON = result;
             });
-            let obj = ((JSON.stringify(resultJSON["SearchResults:searchresults"])));
-            let objStreet = obj.response[0].results[0].result[0].address[0].street[0];
-            let objCity = obj.response[0].results[0].result[0].address[0].city[0];
-            let objState = obj.response[0].results[0].result[0].address[0].state[0];
-            let objAmout = obj.response[0].results[0].result[0].zestimate[0].amount[0]._;
+            let obj = ((JSON.stringify(resultJSON["SearchResults:searchresults"].response[0].results[0].result[0])));
+            let response = response[0].results[0].result[0];
+            let objStreet = obj.response.address[0].street[0];
+            let objCity = obj.response.address[0].city[0];
+            let objState = obj.response.address[0].state[0];
+            let objAmout = obj.response.zestimate[0].amount[0]._;
             setData((prevData) => {
               return [
                 {
