@@ -1,97 +1,96 @@
 import React, { useState } from 'react';
-import {View, TouchableWithoutFeedback, Text, TextInput, Button, StyleSheet, Keyboard, ActivityIndicator} from 'react-native';
+import { View, TouchableWithoutFeedback, Text, TextInput, Button, StyleSheet, Keyboard, ActivityIndicator } from 'react-native';
 import { parseString } from 'react-native-xml2js';
 
 
 export default App = () => {
-
-
-  const http = 'http://www.zillow.com/webservice/GetSearchResults.htm';
+  const host = 'http://www.zillow.com';
+  const searchEndPoint = '/webservice/GetSearchResults.htm';
   const zwsId = 'X1-ZWz1934km3rsp7_a9fju';
 
-  const[addressText, setAddressText] = useState('');
-  const[citystatezipText, setCitystatezipText] = useState('');
-  const[data, setData] = useState([]);
-  const [isLoading, setLoading] = useState(true);
+  const [addressText, setAddressText] = useState('950 Park Ave');
+  const [citystatezipText, setCitystatezipText] = useState('10028');
+  const [data, setData] = useState([]);
+  const [isLoading, setLoading] = useState(true);  
 
-  const changeAdress= (text) => setAddressText(text);
-
+  const changeAdress = (text) => setAddressText(text);
   const changeCitystatezip = (text) => setCitystatezipText(text);
 
-  const URL = `${http}?zws-id=${zwsId}&address=${encodeURIComponent(addressText)}&citystatezip=${encodeURIComponent(citystatezipText)}`
+  makeCardItem = (xmlData) => {
+    const addr = xmlData.address[0];
 
-  console.log(URL);
+    return {
+      street: addr.street[0],
+      city: addr.city[0],
+      state: addr.state[0],
+      amount: xmlData.zestimate[0].amount[0]["_"],
+    }
+  }
 
+  processSearchResults = (responseData) => {
+    const response = responseData["SearchResults:searchresults"].response;
+    const xmlPropertiesList = response[0].results[0].result;
 
-    submitHandler = () => {
-      fetch(URL)
-          .then((response) => {
-            const text = response.text()
-            return text
-          })
-          .then((xmlText) => {
-            let resultJSON = {};
-            const json = parseString(xmlText, (err, result) => {
-              resultJSON = result;
-            });
-            let obj = ((JSON.stringify(resultJSON["SearchResults:searchresults"].response[0].results[0].result[0])));
-            let response = response[0].results[0].result[0];
-            let objStreet = obj.response.address[0].street[0];
-            let objCity = obj.response.address[0].city[0];
-            let objState = obj.response.address[0].state[0];
-            let objAmout = obj.response.zestimate[0].amount[0]._;
-            setData((prevData) => {
-              return [
-                {
-                  street: objStreet,
-                  city: objCity,
-                  state: objState,
-                  amount: objAmout,
-                },
-                ...prevData
-              ];
-            });
-          })
-          .catch((error) => console.error(error))
-          .finally(() => setLoading(false));
-    };
+    const findedResult = xmlPropertiesList.map((xmlPropertyItem) => makeCardItem(xmlPropertyItem));
+    setData(findedResult)
+  }
 
-    console.log(data);
+  submitHandler = () => {
+    const url = `${host}${searchEndPoint}?zws-id=${zwsId}&address=${encodeURIComponent(addressText)}&citystatezip=${encodeURIComponent(citystatezipText)}`;
 
+    fetch(url)
+      .then((response) => response.text())
+      .then((xmlText) => {
+        const json = parseString(xmlText, (err, result) => {
+          processSearchResults(result);
+        });
+      })
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
+  };
+
+  printCard = (cardData) => {
+    return (
+      <View>
+        <Text>{cardData.street}</Text>
+        <Text>{cardData.city}</Text>
+        <Text>{cardData.state}</Text>
+        <Text>{cardData.amount}</Text>
+      </View>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={() => {
       Keyboard.dismiss();
     }}>
-      <View style={styles.container}>
+      <View style={styles.container}>        
         <View style={styles.header}>
           <Text style={styles.title}>Zillow</Text>
         </View>
+        
         <View style={styles.content}>
           <View>
             <TextInput
-              style={styles.input} 
-              placeholder = 'e.g. 3012 13th Ave W'
+              style={styles.input}
+              placeholder='e.g. 3012 13th Ave W'
               onChangeText={changeAdress}
             />
             <TextInput
-              style={styles.input} 
-              placeholder = 'e.g. Seattle WA'
+              style={styles.input}
+              placeholder='e.g. Seattle WA'
               onChangeText={changeCitystatezip}
             />
-            <Button 
-              color= 'orange'
-              onPress = {() => submitHandler()}
-              title = 'Show information'
+            <Button
+              color='orange'
+              onPress={submitHandler()}
+              title='Show information'
             />
-            <View style={styles.list}>
-              {isLoading ? <ActivityIndicator></ActivityIndicator> : ( 
-                    <Text style={styles.item}>
-                      {data}
-                    </Text>
-              )}
-            </View>
           </View>
+        </View>
+
+        <View style={styles.list}>
+          {data.map((dataItem) => printCard(dataItem))}
         </View>
       </View>
     </TouchableWithoutFeedback>
