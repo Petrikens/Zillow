@@ -56,10 +56,10 @@ export default App = () => {
   printCard = (cardData) => {
     return (
       <View>
-        <Text>{cardData.street}</Text>
-        <Text>{cardData.city}</Text>
-        <Text>{cardData.state}</Text>
-        <Text>{cardData.amount}</Text>
+        <Text style={styles.list}>{cardData.street}</Text>
+        <Text style={styles.list}>{cardData.city}</Text>
+        <Text style={styles.list}>{cardData.state}</Text>
+        <Text style={styles.list}>{cardData.amount}</Text>
       </View>
     );
   }
