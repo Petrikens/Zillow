@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, TouchableWithoutFeedback, Text, TextInput, Button, StyleSheet, Keyboard, ActivityIndicator } from 'react-native';
 import { parseString } from 'react-native-xml2js';
+import Header from './header';
+import Input from './input'
 
 
 export default App = () => {
@@ -29,6 +31,7 @@ export default App = () => {
 
   processSearchResults = (responseData) => {
     const response = responseData["SearchResults:searchresults"].response;
+    console.log(response)
     const xmlPropertiesList = response[0].results[0].result;
 
     const findedResult = xmlPropertiesList.map((xmlPropertyItem) => makeCardItem(xmlPropertyItem));
@@ -37,6 +40,7 @@ export default App = () => {
 
   submitHandler = () => {
     const url = `${host}${searchEndPoint}?zws-id=${zwsId}&address=${encodeURIComponent(addressText)}&citystatezip=${encodeURIComponent(citystatezipText)}`;
+    console.log(url);
 
     fetch(url)
       .then((response) => response.text())
@@ -65,30 +69,10 @@ export default App = () => {
       Keyboard.dismiss();
     }}>
       <View style={styles.container}>        
-        <View style={styles.header}>
-          <Text style={styles.title}>Zillow</Text>
-        </View>
-        
+        <Header></Header>
         <View style={styles.content}>
-          <View>
-            <TextInput
-              style={styles.input}
-              placeholder='e.g. 3012 13th Ave W'
-              onChangeText={changeAdress}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder='e.g. Seattle WA'
-              onChangeText={changeCitystatezip}
-            />
-            <Button
-              color='orange'
-              onPress={submitHandler()}
-              title='Show information'
-            />
-          </View>
+          <Input submitHandler={submitHandler}></Input>
         </View>
-
         <View style={styles.list}>
           {data.map((dataItem) => printCard(dataItem))}
         </View>
@@ -118,17 +102,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flex: 1
   },
-  header: {
-    height: 80,
-    padding: 38,
-    backgroundColor: 'coral',
-  },
-  title: {
-    textAlign: 'center',
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
   input: {
     marginBottom: 10,
     paddingHorizontal: 8,
@@ -141,6 +114,10 @@ const styles = StyleSheet.create({
     color: 'green',
     fontSize: 15,
     fontWeight: 'bold'
+  },
+  content: {
+    padding: 40,
+    flex: 1
   }
 });
 
